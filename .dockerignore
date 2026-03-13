@@ -1,0 +1,29 @@
+node_modules
+client/node_modules
+server/node_modules
+
+# Build outputs
+client/dist
+server/dist
+
+# Logs and coverage
+**/npm-debug.log
+**/yarn-debug.log
+**/yarn-error.log
+**/pnpm-debug.log
+**/coverage
+**/.nyc_output
+
+# VCS/IDE
+.git
+.gitignore
+**/.vscode
+**/.idea
+
+# Env files
+**/.env
+**/.env.*
+!**/.env.example
+
+# Misc
+**/README.md
