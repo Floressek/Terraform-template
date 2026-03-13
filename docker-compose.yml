@@ -1,0 +1,50 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: md5
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  client:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+      args:
+        NODE_ENV: development
+    environment:
+      - API_URL=http://server:3000
+    ports:
+      - "4200:80"
+    depends_on:
+      - server
+
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    ports:
+      - "3001:3000"
+
+volumes:
+  pgdata:

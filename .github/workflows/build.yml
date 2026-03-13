@@ -1,0 +1,149 @@
+name: Build And Deploy To Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '10.15.1'
+  GCP_REGION: ${{ vars.GCP_REGION || 'europe-central2' }}
+  DEPLOY_ENV: ${{ vars.DEPLOY_ENV || 'dev' }}
+
+jobs:
+  build:
+    name: Build Frontend And Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            client/pnpm-lock.yaml
+            server/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --dir client install --frozen-lockfile
+          pnpm --dir server install --frozen-lockfile
+
+      - name: Build frontend
+        run: pnpm --dir client run build
+
+      - name: Build backend
+        run: pnpm --dir server run build
+
+  deploy:
+    name: Build Images And Deploy Via Terraform
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.build.result == 'success'
+    env:
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+      TF_WORKING_DIR: terraform/environments/dev
+      TF_IN_AUTOMATION: 'true'
+      TF_INPUT: 'false'
+      TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
+      TF_VAR_region: ${{ vars.GCP_REGION || 'europe-central2' }}
+      TF_VAR_environment: ${{ vars.DEPLOY_ENV || 'dev' }}
+      TF_VAR_google_client_id: ${{ secrets.GOOGLE_CLIENT_ID }}
+      TF_VAR_google_client_secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Validate GCP settings
+        run: |
+          if [ -z "${GCP_PROJECT_ID}" ]; then
+            echo "Missing required secret: GCP_PROJECT_ID"
+            exit 1
+          fi
+
+          if [ -z "${TF_VAR_google_client_id}" ] || [ -z "${TF_VAR_google_client_secret}" ]; then
+            echo "Missing required secrets: GOOGLE_CLIENT_ID and/or GOOGLE_CLIENT_SECRET"
+            exit 1
+          fi
+
+          if [ -z "${GCP_WORKLOAD_IDENTITY_PROVIDER}" ] && [ -z "${GCP_SA_KEY}" ]; then
+            echo "Missing GCP auth configuration. Set either GCP_WORKLOAD_IDENTITY_PROVIDER (+ GCP_SERVICE_ACCOUNT) or GCP_SA_KEY."
+            exit 1
+          fi
+
+      - name: Authenticate to Google Cloud (Workload Identity)
+        if: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER != '' }}
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+
+      - name: Authenticate to Google Cloud (Service Account Key)
+        if: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER == '' && env.GCP_SA_KEY != '' }}
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ env.GCP_SA_KEY }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+
+      - name: Configure Docker auth
+        run: gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Build and push backend image
+        run: |
+          BACKEND_IMAGE="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/PROJECT-NAME/api:${GITHUB_SHA}"
+          docker build -f server/Dockerfile -t "${BACKEND_IMAGE}" .
+          docker push "${BACKEND_IMAGE}"
+          echo "BACKEND_IMAGE=${BACKEND_IMAGE}" >> "${GITHUB_ENV}"
+
+      - name: Build and push frontend image
+        run: |
+          FRONTEND_IMAGE="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/PROJECT-NAME/web:${GITHUB_SHA}"
+          docker build -f client/Dockerfile --build-arg NODE_ENV=production -t "${FRONTEND_IMAGE}" .
+          docker push "${FRONTEND_IMAGE}"
+          echo "FRONTEND_IMAGE=${FRONTEND_IMAGE}" >> "${GITHUB_ENV}"
+
+      - name: Terraform init
+        run: |
+          terraform -chdir="${TF_WORKING_DIR}" init
+
+      - name: Terraform apply
+        run: |
+          terraform -chdir="${TF_WORKING_DIR}" apply -auto-approve \
+            -var="docker_image=${BACKEND_IMAGE}" \
+            -var="frontend_docker_image=${FRONTEND_IMAGE}"
