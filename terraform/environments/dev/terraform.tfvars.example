@@ -1,0 +1,6 @@
+project_id              = "YOUR_PROJECT_ID_HERE"
+region                  = "europe-central2"
+docker_image            = "YOUR_DOCKER_IMAGE_HERE"
+frontend_docker_image   = "YOUR_FRONTEND_DOCKER_IMAGE_HERE"
+google_client_id        = "YOUR_GOOGLE_CLIENT_ID_HERE"
+google_client_secret    = "YOUR_GOOGLE_CLIENT_SECRET_HERE"
