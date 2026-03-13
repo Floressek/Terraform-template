@@ -1,5 +1,5 @@
 resource "google_sql_database_instance" "postgres" {
-  name                = "spokey-db-${var.environment}"
+  name                = "PROJECT-NAME-db-${var.environment}"
   database_version    = "POSTGRES_16"
   region              = var.region
   project             = var.project_id
@@ -37,14 +37,14 @@ resource "google_sql_database_instance" "postgres" {
   }
 }
 
-resource "google_sql_database" "spokey" {
-  name     = "spokey"
+resource "google_sql_database" "PROJECT-NAME" {
+  name     = "PROJECT-NAME"
   instance = google_sql_database_instance.postgres.name
   project  = var.project_id
 }
 
-resource "google_sql_user" "spokey" {
-  name     = "spokey"
+resource "google_sql_user" "PROJECT-NAME" {
+  name     = "PROJECT-NAME"
   instance = google_sql_database_instance.postgres.name
   password = random_password.db_password.result
   project  = var.project_id
@@ -56,7 +56,7 @@ resource "random_password" "db_password" {
 }
 
 resource "google_secret_manager_secret" "db_password" {
-  secret_id = "spokey-db-password-${var.environment}"
+  secret_id = "PROJECT-NAME-db-password-${var.environment}"
   project   = var.project_id
 
   replication {

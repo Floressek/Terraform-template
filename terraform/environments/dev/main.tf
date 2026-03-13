@@ -1,6 +1,6 @@
 locals {
-  api_url      = "https://spokey-api-${var.environment}-${data.google_project.project.number}.${var.region}.run.app"
-  frontend_url = "https://spokey-client-${var.environment}-${data.google_project.project.number}.${var.region}.run.app"
+  api_url      = "https://PROJECT-NAME-api-${var.environment}-${data.google_project.project.number}.${var.region}.run.app"
+  frontend_url = "https://PROJECT-NAME-client-${var.environment}-${data.google_project.project.number}.${var.region}.run.app"
 }
 
 data "google_project" "project" {
@@ -13,7 +13,7 @@ module "iam" {
   project_id              = var.project_id
   environment             = var.environment
   region                  = var.region
-  cloud_run_service_names = ["spokey-api-${var.environment}"]
+  cloud_run_service_names = ["PROJECT-NAME-api-${var.environment}"]
 }
 
 module "auth" {

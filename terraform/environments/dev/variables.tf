@@ -42,11 +42,11 @@ variable "google_client_secret" {
 variable "api_url" {
   type        = string
   description = "API URL for frontend configuration"
-  default     = "https://spokey-api-dev.run.app"
+  default     = "https://PROJECT-NAME-api-dev.run.app"
 }
 
 variable "frontend_url" {
   type        = string
   description = "Frontend URL for API CORS configuration"
-  default     = "https://spokey-client-dev.run.app"
+  default     = "https://PROJECT-NAME-client-dev.run.app"
 }

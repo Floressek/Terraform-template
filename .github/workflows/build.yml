@@ -126,14 +126,14 @@ jobs:
 
       - name: Build and push backend image
         run: |
-          BACKEND_IMAGE="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/spokey/api:${GITHUB_SHA}"
+          BACKEND_IMAGE="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/PROJECT-NAME/api:${GITHUB_SHA}"
           docker build -f server/Dockerfile -t "${BACKEND_IMAGE}" .
           docker push "${BACKEND_IMAGE}"
           echo "BACKEND_IMAGE=${BACKEND_IMAGE}" >> "${GITHUB_ENV}"
 
       - name: Build and push frontend image
         run: |
-          FRONTEND_IMAGE="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/spokey/web:${GITHUB_SHA}"
+          FRONTEND_IMAGE="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/PROJECT-NAME/web:${GITHUB_SHA}"
           docker build -f client/Dockerfile --build-arg NODE_ENV=production -t "${FRONTEND_IMAGE}" .
           docker push "${FRONTEND_IMAGE}"
           echo "FRONTEND_IMAGE=${FRONTEND_IMAGE}" >> "${GITHUB_ENV}"

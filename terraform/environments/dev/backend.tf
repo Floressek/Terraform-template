@@ -1,6 +1,6 @@
 terraform {
   backend "gcs" {
-    bucket = "spokey-terraform-state"
+    bucket = "PROJECT-NAME-terraform-state"
     prefix = "environments/dev"
   }
 }

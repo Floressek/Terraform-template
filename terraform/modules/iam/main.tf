@@ -1,12 +1,12 @@
 resource "google_service_account" "api" {
-  account_id   = "spokey-api-${var.environment}"
-  display_name = "Spokey API (${var.environment})"
+  account_id   = "PROJECT-NAME-api-${var.environment}"
+  display_name = "PROJECT-NAME API (${var.environment})"
   project      = var.project_id
 }
 
 resource "google_service_account" "worker" {
-  account_id   = "spokey-worker-${var.environment}"
-  display_name = "Spokey Worker (${var.environment})"
+  account_id   = "PROJECT-NAME-worker-${var.environment}"
+  display_name = "PROJECT-NAME Worker (${var.environment})"
   project      = var.project_id
 }
 

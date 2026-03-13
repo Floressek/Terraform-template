@@ -4,7 +4,7 @@ resource "random_password" "session_secret" {
 }
 
 resource "google_secret_manager_secret" "google_client_id" {
-  secret_id = "spokey-google-client-id-${var.environment}"
+  secret_id = "PROJECT-NAME-google-client-id-${var.environment}"
   project   = var.project_id
 
   replication {
@@ -22,7 +22,7 @@ resource "google_secret_manager_secret_version" "google_client_id" {
 }
 
 resource "google_secret_manager_secret" "google_client_secret" {
-  secret_id = "spokey-google-client-secret-${var.environment}"
+  secret_id = "PROJECT-NAME-google-client-secret-${var.environment}"
   project   = var.project_id
 
   replication {
@@ -40,7 +40,7 @@ resource "google_secret_manager_secret_version" "google_client_secret" {
 }
 
 resource "google_secret_manager_secret" "session_secret" {
-  secret_id = "spokey-session-secret-${var.environment}"
+  secret_id = "PROJECT-NAME-session-secret-${var.environment}"
   project   = var.project_id
 
   replication {

@@ -11,11 +11,11 @@ output "public_ip" {
 }
 
 output "database_name" {
-  value = google_sql_database.spokey.name
+  value = google_sql_database.PROJECT-NAME.name
 }
 
 output "database_user" {
-  value = google_sql_user.spokey.name
+  value = google_sql_user.PROJECT-NAME.name
 }
 
 output "password_secret_id" {

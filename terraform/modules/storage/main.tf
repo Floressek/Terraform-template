@@ -1,5 +1,5 @@
 resource "google_storage_bucket" "product_images" {
-  name          = "${var.project_id}-spokey-product-${var.environment}"
+  name          = "${var.project_id}-PROJECT-NAME-product-${var.environment}"
   location      = var.region
   project       = var.project_id
   force_destroy = var.environment != "prod"
@@ -8,6 +8,6 @@ resource "google_storage_bucket" "product_images" {
 
   labels = {
     environment = var.environment
-    project     = "spokey"
+    project     = "PROJECT-NAME"
   }
 }

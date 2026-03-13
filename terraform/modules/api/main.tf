@@ -1,5 +1,5 @@
 resource "google_cloud_run_v2_service" "api" {
-  name     = "spokey-api-${var.environment}"
+  name     = "PROJECT-NAME-api-${var.environment}"
   location = var.region
   project  = var.project_id
 
@@ -202,7 +202,7 @@ resource "google_cloud_run_v2_service" "api" {
 
   labels = {
     environment = var.environment
-    project     = "spokey"
+    project     = "PROJECT-NAME"
   }
 }
 

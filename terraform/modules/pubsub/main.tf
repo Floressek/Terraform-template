@@ -4,37 +4,37 @@
 # 3. dead.letter.queue – messages land here after 5 failed attempts (prevents infinite loops)
 
 resource "google_pubsub_topic" "products_to_embed" {
-  name    = "spokey-products-to-embed-${var.environment}"
+  name    = "PROJECT-NAME-products-to-embed-${var.environment}"
   project = var.project_id
 
   labels = {
     environment = var.environment
-    project     = "spokey"
+    project     = "PROJECT-NAME"
   }
 }
 
 resource "google_pubsub_topic" "embeddings_completed" {
-  name    = "spokey-embeddings-completed-${var.environment}"
+  name    = "PROJECT-NAME-embeddings-completed-${var.environment}"
   project = var.project_id
 
   labels = {
     environment = var.environment
-    project     = "spokey"
+    project     = "PROJECT-NAME"
   }
 }
 
 resource "google_pubsub_topic" "dead_letter" {
-  name    = "spokey-dead-letter-${var.environment}"
+  name    = "PROJECT-NAME-dead-letter-${var.environment}"
   project = var.project_id
 
   labels = {
     environment = var.environment
-    project     = "spokey"
+    project     = "PROJECT-NAME"
   }
 }
 
 resource "google_pubsub_subscription" "embed_worker" {
-  name    = "spokey-embed-worker-${var.environment}"
+  name    = "PROJECT-NAME-embed-worker-${var.environment}"
   topic   = google_pubsub_topic.products_to_embed.id
   project = var.project_id
 
@@ -52,7 +52,7 @@ resource "google_pubsub_subscription" "embed_worker" {
 }
 
 resource "google_pubsub_subscription" "match_worker" {
-  name    = "spokey-match-worker-${var.environment}"
+  name    = "PROJECT-NAME-match-worker-${var.environment}"
   topic   = google_pubsub_topic.embeddings_completed.id
   project = var.project_id
 
@@ -70,7 +70,7 @@ resource "google_pubsub_subscription" "match_worker" {
 }
 
 resource "google_pubsub_subscription" "dead_letter_sub" {
-  name    = "spokey-dead-letter-sub-${var.environment}"
+  name    = "PROJECT-NAME-dead-letter-sub-${var.environment}"
   topic   = google_pubsub_topic.dead_letter.id
   project = var.project_id
 }
